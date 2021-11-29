@@ -52,6 +52,8 @@ SCRIPT=$(readlink -f "$0")
 SCRIPTNAME=$(basename "$SCRIPT")
 # Hostname
 HOSTNAME=`hostname`
+# Lock directory
+LOCKDIR="/tmp/restic-dataset-backup"
 
 # runtime measurement
 declare -i iSTARTTIME=0
@@ -84,8 +86,8 @@ fnCleanup () {
 	if [ -e "$DATASET_MOUNTPOINT"/.zfs/snapshot/backup-source/ ]; then
 		zfs destroy "$DATASET"@backup-source
 	fi
-	if [ -e /tmp/restic-backup-is-running ]; then
-		rm -rf /tmp/restic-backup-is-running
+	if [ -e "$LOCKDIR" ]; then
+		rm -rf "$LOCKDIR"
 	fi
 }
 
@@ -140,7 +142,7 @@ fnSendStart "Starting backup: $HOSTNAME"
 if [ $(id -u) -ne 0 ]; then fnSendError "Please run as root!"; exit 1; fi
 
 # check if backup is already running
-if mkdir /tmp/restic-backup-is-running; then
+if mkdir "$LOCKDIR"; then
 	echo "Locking succeeded."
 else
 	fnSendError "Lock failed!"
@@ -166,7 +168,7 @@ unset RESTIC_REPOSITORY
 unset RESTIC_PASSWORD
 
 # remove lock dir
-rm -rf /tmp/restic-backup-is-running
+rm -rf "$LOCKDIR"
 
 # runtime measurement
 iENDTIME=$(date +%s)
