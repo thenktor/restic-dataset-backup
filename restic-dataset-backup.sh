@@ -155,6 +155,8 @@ if [ ! $? -eq 0 ]; then fnSendError "Creating snapshot $DATASET@backup-source fa
 # export some vars
 export RESTIC_REPOSITORY
 export RESTIC_PASSWORD
+export AWS_ACCESS_KEY_ID
+export AWS_SECRET_ACCESS_KEY
 # Mount point of ZFS dataset
 DATASET_MOUNTPOINT=`zfs get -H -o value mountpoint "$DATASET"`
 nice -n19 ionice -c3 restic --verbose backup --tag "dataset:$DATASET" --tag "mountpoint:$DATASET_MOUNTPOINT" "$DATASET_MOUNTPOINT"/.zfs/snapshot/backup-source/
@@ -166,6 +168,8 @@ if [ ! $? -eq 0 ]; then sync; sleep 2; fnSendError "Destroying snapshot $DATASET
 # unset some vars
 unset RESTIC_REPOSITORY
 unset RESTIC_PASSWORD
+unset AWS_ACCESS_KEY_ID
+unset AWS_SECRET_ACCESS_KEY
 
 # remove lock dir
 rm -rf "$LOCKDIR"
