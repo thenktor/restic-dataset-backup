@@ -52,8 +52,6 @@ SCRIPT=$(readlink -f "$0")
 SCRIPTNAME=$(basename "$SCRIPT")
 # Hostname
 HOSTNAME=`hostname`
-# Lock directory
-LOCKDIR="/tmp/restic-dataset-backup"
 
 # runtime measurement
 declare -i iSTARTTIME=0
@@ -142,6 +140,8 @@ fnSendStart "Starting backup: $HOSTNAME"
 if [ $(id -u) -ne 0 ]; then fnSendError "Please run as root!"; exit 1; fi
 
 # check if backup is already running
+LOCKSUBDIR=`echo "$RESTIC_REPOSITORY" | md5sum | head -c32`
+LOCKDIR="/tmp/restic-dataset-backup/$LOCKSUBDIR"
 if mkdir "$LOCKDIR"; then
 	echo "Locking succeeded."
 else
