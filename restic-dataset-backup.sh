@@ -142,7 +142,7 @@ if [ $(id -u) -ne 0 ]; then fnSendError "Please run as root!"; exit 1; fi
 # check if backup is already running
 LOCKSUBDIR=`echo "$RESTIC_REPOSITORY" | md5sum | head -c32`
 LOCKDIR="/tmp/restic-dataset-backup/$LOCKSUBDIR"
-if mkdir "$LOCKDIR"; then
+if mkdir -p "$LOCKDIR"; then
 	echo "Locking succeeded."
 else
 	fnSendError "Lock failed!"
