@@ -13,7 +13,7 @@
 ###############################################################################
 
 # Version
-VERSION="v0.4"
+VERSION="v0.5"
 # Path
 PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 export PATH
@@ -141,8 +141,12 @@ if [ $(id -u) -ne 0 ]; then fnSendError "Please run as root!"; exit 1; fi
 
 # check if backup is already running
 LOCKSUBDIR=`echo "$RESTIC_REPOSITORY" | md5sum | head -c32`
-LOCKDIR="/tmp/restic-dataset-backup/$LOCKSUBDIR"
-if mkdir -p "$LOCKDIR"; then
+LOCKPARENTDIR="/tmp/restic-dataset-backup"
+if [ ! -e "$LOCKPARENTDIR" ]; then
+	mkdir "$LOCKPARENTDIR"
+fi
+LOCKDIR="$LOCKPARENTDIR/$LOCKSUBDIR"
+if mkdir "$LOCKDIR"; then
 	echo "Locking succeeded."
 else
 	fnSendError "Lock failed!"
