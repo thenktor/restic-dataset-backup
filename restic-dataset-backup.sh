@@ -179,7 +179,7 @@ if [ ! $? -eq 0 ]; then sync; sleep 2; fnSendError "Destroying snapshot $DATASET
 
 # restic forget
 if [ ! -z "$KEEP_WITHIN" -a ! -z "$KEEP_MONTHLY" ]; then
-	nice -n19 ionice -c3 restic forget --keep-within "$KEEP_WITHIN" --keep-monthly "$KEEP_MONTHLY --prune"
+	nice -n19 ionice -c3 restic forget --keep-within "$KEEP_WITHIN" --keep-monthly "$KEEP_MONTHLY" --prune
 	if [ ! $? -eq 0 ]; then sync; sleep 2; fnSendError "Restic forget failed!"; fnCleanup; exit 1; fi
 fi
 
