@@ -66,6 +66,8 @@ iSTARTTIME=$(date +%s)
 DATASET="none"
 RESTIC_REPOSITORY="none"
 RESTIC_PASSWORD="none"
+AWS_ACCESS_KEY_ID="none"
+AWS_SECRET_ACCESS_KEY="none"
 HC_URL="none"
 if [ -f "$CONFIGFILE" ]; then
 	if [ $(stat -c "%u" "$CONFIGFILE") != "0" ]; then
