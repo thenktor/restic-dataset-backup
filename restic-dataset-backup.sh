@@ -13,7 +13,7 @@
 ###############################################################################
 
 # Version
-VERSION="v0.5"
+VERSION="v0.6"
 # Path
 PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 export PATH
@@ -69,6 +69,8 @@ RESTIC_PASSWORD="none"
 AWS_ACCESS_KEY_ID="none"
 AWS_SECRET_ACCESS_KEY="none"
 HC_URL="none"
+KEEP_WITHIN=""
+KEEP_MONTHLY=""
 if [ -f "$CONFIGFILE" ]; then
 	if [ $(stat -c "%u" "$CONFIGFILE") != "0" ]; then
 		echoerr "WARNING: $CONFIGFILE should be owned by root because it contains sensible data!"
@@ -155,6 +157,7 @@ else
 	exit 1
 fi
 
+# create snapshot of ZFS dataset
 zfs snap "$DATASET"@backup-source
 if [ ! $? -eq 0 ]; then fnSendError "Creating snapshot $DATASET@backup-source failed!"; fnCleanup; exit 1; fi
 
@@ -165,11 +168,20 @@ export AWS_ACCESS_KEY_ID
 export AWS_SECRET_ACCESS_KEY
 # Mount point of ZFS dataset
 DATASET_MOUNTPOINT=`zfs get -H -o value mountpoint "$DATASET"`
+
+# restic backup
 nice -n19 ionice -c3 restic --verbose backup --tag "dataset:$DATASET" --tag "mountpoint:$DATASET_MOUNTPOINT" "$DATASET_MOUNTPOINT"/.zfs/snapshot/backup-source/
 if [ ! $? -eq 0 ]; then fnSendError "Restic backup failed!"; fnCleanup; exit 1; fi
 
+# delete snapshot of ZFS dataset
 zfs destroy "$DATASET"@backup-source
 if [ ! $? -eq 0 ]; then sync; sleep 2; fnSendError "Destroying snapshot $DATASET@backup-source failed!"; fnCleanup; exit 1; fi
+
+# restic forget
+if [ ! -z "$KEEP_WITHIN" -a ! -z "$KEEP_MONTHLY" ]; then
+	nice -n19 ionice -c3 restic forget --keep-within "$KEEP_WITHIN" --keep-monthly "$KEEP_MONTHLY --prune"
+	if [ ! $? -eq 0 ]; then sync; sleep 2; fnSendError "Restic forget failed!"; fnCleanup; exit 1; fi
+fi
 
 # unset some vars
 unset RESTIC_REPOSITORY
