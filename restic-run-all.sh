@@ -20,7 +20,7 @@ export PATH
 echoerr() { printf "%s\n" "$*" >&2; }
 
 fnUsage() {
-	echoerr "USAGE: $0 [-p <config-file>]" 1>&2;
+	echoerr "USAGE: $0 [-c <config-file>]" 1>&2;
 	echoerr "  -c <config-file>: path to config file" 1>&2;
 	exit 1;
 }
@@ -132,7 +132,7 @@ ERROR_CONFS=""
 
 # Loop through each .conf file
 for CONF_FILE in $CONF_FILES; do
-	if ! "$RESTIC_DATASET_BACKUP" "$SEARCH_DIR/$CONF_FILE"; then
+	if ! "$RESTIC_DATASET_BACKUP" -c "$SEARCH_DIR/$CONF_FILE"; then
 		iERROR_COUNT+=1
 		ERROR_CONFS="$CONF_FILE $ERROR_CONFS"
 	fi
