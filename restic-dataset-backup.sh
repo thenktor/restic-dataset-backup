@@ -179,8 +179,7 @@ else
 fi
 
 # create snapshot of ZFS dataset
-zfs snap "$DATASET"@backup-source
-if [ ! $? -eq 0 ]; then fnSendError "Creating snapshot $DATASET@backup-source failed!"; fnCleanup; exit 1; fi
+if ! zfs snap "$DATASET"@backup-source; then fnSendError "Creating snapshot $DATASET@backup-source failed!"; fnCleanup; exit 1; fi
 
 # export some vars
 export RESTIC_REPOSITORY
@@ -191,17 +190,26 @@ export AWS_SECRET_ACCESS_KEY
 DATASET_MOUNTPOINT=$(zfs get -H -o value mountpoint "$DATASET")
 
 # restic backup
-nice -n19 ionice -c3 restic "$RESTIC_ARGS" --verbose backup --tag "dataset:$DATASET" --tag "mountpoint:$DATASET_MOUNTPOINT" "${DATASET_MOUNTPOINT}/.zfs/snapshot/backup-source/"
-if [ ! $? -eq 0 ]; then fnSendError "Restic backup failed!"; fnCleanup; exit 1; fi
+if ! nice -n19 ionice -c3 restic "$RESTIC_ARGS" --verbose backup --tag "dataset:$DATASET" --tag "mountpoint:$DATASET_MOUNTPOINT" "${DATASET_MOUNTPOINT}/.zfs/snapshot/backup-source/"; then 
+	fnSendError "Restic backup failed!"
+	fnCleanup
+	exit 1
+fi
 
 # delete snapshot of ZFS dataset
-zfs destroy "$DATASET"@backup-source
-if [ ! $? -eq 0 ]; then sync; sleep 2; fnSendError "Destroying snapshot $DATASET@backup-source failed!"; fnCleanup; exit 1; fi
+if ! zfs destroy "$DATASET"@backup-source; then
+	sync; sleep 2; fnSendError "Destroying snapshot $DATASET@backup-source failed!"
+	fnCleanup
+	exit 1
+fi
 
 # restic forget
 if [ -n "$KEEP_WITHIN" ] && [ -n "$KEEP_MONTHLY" ]; then
-	nice -n19 ionice -c3 restic "$RESTIC_ARGS" forget --keep-within "$KEEP_WITHIN" --keep-monthly "$KEEP_MONTHLY" --prune
-	if [ ! $? -eq 0 ]; then sync; sleep 2; fnSendError "Restic forget failed!"; fnCleanup; exit 1; fi
+	if ! nice -n19 ionice -c3 restic "$RESTIC_ARGS" forget --keep-within "$KEEP_WITHIN" --keep-monthly "$KEEP_MONTHLY" --prune; then
+		sync; sleep 2; fnSendError "Restic forget failed!"
+		fnCleanup
+		exit 1
+	fi
 fi
 
 # unset some vars
