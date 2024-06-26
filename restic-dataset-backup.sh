@@ -213,7 +213,7 @@ export AWS_SECRET_ACCESS_KEY
 DATASET_MOUNTPOINT=$(zfs get -H -o value mountpoint "$DATASET")
 
 # restic backup
-if ! nice -n19 ionice -c3 restic "$RESTIC_ARGS" --verbose backup --tag "dataset:$DATASET" --tag "mountpoint:$DATASET_MOUNTPOINT" "${DATASET_MOUNTPOINT}/.zfs/snapshot/backup-source/"; then 
+if ! nice -n19 restic "$RESTIC_ARGS" --verbose backup --tag "dataset:$DATASET" --tag "mountpoint:$DATASET_MOUNTPOINT" "${DATASET_MOUNTPOINT}/.zfs/snapshot/backup-source/"; then 
 	fnSendError "Restic backup failed!"
 	fnCleanup
 	exit 1
@@ -228,7 +228,7 @@ fi
 
 # restic forget
 if [ -n "$KEEP_WITHIN" ] && [ -n "$KEEP_MONTHLY" ]; then
-	if ! nice -n19 ionice -c3 restic "$RESTIC_ARGS" forget --keep-within "$KEEP_WITHIN" --keep-monthly "$KEEP_MONTHLY" --prune; then
+	if ! nice -n19 restic "$RESTIC_ARGS" forget --keep-within "$KEEP_WITHIN" --keep-monthly "$KEEP_MONTHLY" --prune; then
 		sync; sleep 2; fnSendError "Restic forget failed!"
 		fnCleanup
 		exit 1
