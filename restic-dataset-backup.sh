@@ -86,11 +86,20 @@ KEEP_MONTHLY=""
 RCLONE_PROGRAM=""
 PATH_APPEND=""
 if [ -f "$CONFIGFILE" ]; then
-	if [ "$(stat -c "%u" "$CONFIGFILE")" != "0" ]; then
-		echoerr "WARNING: $CONFIGFILE should be owned by root because it contains sensible data!"
-	fi
-	if [ "$(stat -c "%a" "$CONFIGFILE")" != "600" ]; then
-		echoerr "WARNING: $CONFIGFILE should have 600 permissions because it contains sensible data!"
+	if [ "$(uname)" = "FreeBSD" ]; then
+		if [ "$(stat -f '%u' "$CONFIGFILE")" != "0" ]; then
+			echoerr "WARNING: $CONFIGFILE should be owned by root because it contains sensible data!"
+		fi
+		if [ "$(stat -f '%Lp' "$CONFIGFILE")" != "600" ]; then
+			echoerr "WARNING: $CONFIGFILE should have 600 permissions because it contains sensible data!"
+		fi
+	else
+		if [ "$(stat -c '%u' "$CONFIGFILE")" != "0" ]; then
+			echoerr "WARNING: $CONFIGFILE should be owned by root because it contains sensible data!"
+		fi
+		if [ "$(stat -c '%a' "$CONFIGFILE")" != "600" ]; then
+			echoerr "WARNING: $CONFIGFILE should have 600 permissions because it contains sensible data!"
+		fi
 	fi
 	source "$CONFIGFILE"
 	if [ -n "$PATH_APPEND" ]; then
