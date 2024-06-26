@@ -132,7 +132,7 @@ ERROR_CONFS=""
 
 # Loop through each .conf file
 for CONF_FILE in $CONF_FILES; do
-	if ! "$RESTIC_DATASET_BACKUP" -c "$SEARCH_DIR/$CONF_FILE"; then
+	if ! "$RESTIC_DATASET_BACKUP" -c "$CONF_FILE"; then
 		iERROR_COUNT+=1
 		ERROR_CONFS="$CONF_FILE $ERROR_CONFS"
 	fi
