@@ -13,11 +13,13 @@
 ###############################################################################
 
 # Version
-VERSION="v0.8"
+VERSION="v0.9"
 # Path
 PATH="/usr/sbin:/usr/bin:/sbin:/bin"
 # /usr/local/bin
 if [ -d /usr/local/bin ]; then PATH="/usr/local/bin:$PATH"; fi
+# /usr/local/sbin
+if [ -d /usr/local/sbin ]; then PATH="/usr/local/sbin:$PATH"; fi
 # OmniOS Community Edition
 if [ -d /opt/ooce/bin ]; then PATH="/opt/ooce/bin:$PATH"; fi
 # pkgsrc (https://pkgsrc.smartos.org/)
