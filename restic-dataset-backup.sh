@@ -50,6 +50,7 @@ while getopts "hic:" OPT; do
 			;;
 		i)
 			INIT="YES"
+			;;
 		*)
 			fnUsage
 			;;
