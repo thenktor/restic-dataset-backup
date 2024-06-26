@@ -239,9 +239,11 @@ if [ "$INIT" = "YES" ]; then
 	if fnYesNo; then
 		if ! restic "$RESTIC_ARGS" init; then
 			fnSendError "Restic init failed!"
+			fnCleanup
 			exit 1
 		else
 			fnSendSuccess "Restic init done!"
+			fnCleanup
 			exit 0
 		fi
 	fi
