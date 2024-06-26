@@ -81,6 +81,8 @@ AWS_SECRET_ACCESS_KEY="none"
 HC_URL="none"
 KEEP_WITHIN=""
 KEEP_MONTHLY=""
+RCLONE_PROGRAM=""
+PATH_APPEND=""
 if [ -f "$CONFIGFILE" ]; then
 	if [ "$(stat -c "%u" "$CONFIGFILE")" != "0" ]; then
 		echoerr "WARNING: $CONFIGFILE should be owned by root because it contains sensible data!"
