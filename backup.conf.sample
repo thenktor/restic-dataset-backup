@@ -60,6 +60,13 @@ AWS_SECRET_ACCESS_KEY="none"
 #   * For a Hetzner Storage Box use "ssh -p 23 xyz@xyz.your-storagebox.de rclone"
 RCLONE_PROGRAM="rclone"
 
+#
+# PATH (optional)
+#
+
+# add additional paths to PATH, e.g. "/opt/restic/bin:/mnt/dataset/bin"
+PATH_APPEND=""
+
 ###############################################################################
 # End of user defined variables
 ###############################################################################

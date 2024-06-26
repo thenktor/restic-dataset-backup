@@ -13,9 +13,15 @@
 ###############################################################################
 
 # Version
-VERSION="v0.7"
+VERSION="v0.8"
 # Path
-PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+PATH="/usr/sbin:/usr/bin:/sbin:/bin"
+# /usr/local/bin
+if [ -d /usr/local/bin ]; then PATH="/usr/local/bin:$PATH"; fi
+# OmniOS Community Edition
+if [ -d /opt/ooce/bin ]; then PATH="/opt/ooce/bin:$PATH"; fi
+# pkgsrc (https://pkgsrc.smartos.org/)
+if [ -d /opt/local/bin ]; then PATH="/opt/local/bin:$PATH"; fi
 export PATH
 
 # echo to stderr
@@ -83,6 +89,10 @@ if [ -f "$CONFIGFILE" ]; then
 		echoerr "WARNING: $CONFIGFILE should have 600 permissions because it contains sensible data!"
 	fi
 	source "$CONFIGFILE"
+	if [ -n "$PATH_APPEND" ]; then
+		PATH="$PATH:$PATH_APPEND"
+		export PATH
+	fi
 else
 	echoerr "$CONFIGFILE not found!"
 	exit 1
