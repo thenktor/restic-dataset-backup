@@ -13,7 +13,7 @@
 ###############################################################################
 
 # Version
-VERSION="v0.9"
+VERSION="v0.10"
 # Path
 PATH="/usr/sbin:/usr/bin:/sbin:/bin"
 # /usr/local/bin
@@ -85,7 +85,7 @@ RESTIC_PASSWORD="none"
 RESTIC_ARGS=""
 AWS_ACCESS_KEY_ID="none"
 AWS_SECRET_ACCESS_KEY="none"
-HC_URL="none"
+HC_URL=""
 KEEP_WITHIN=""
 KEEP_MONTHLY=""
 RCLONE_PROGRAM=""
@@ -154,7 +154,7 @@ fnSendStart () {
 	fi
 	echo "$MESSAGE"
 	# Ping Healthchecks.io
-	if [ ! "$HC_URL" == "" ]; then
+	if [ -n "$HC_URL" ]; then
 		echo -n "Connecting to healthchecks.io: "
 		curl -fsS --retry 3 --data-raw "$SCRIPTNAME $VERSION: $MESSAGE" "$HC_URL/start"
 		echo ""
@@ -169,7 +169,7 @@ fnSendSuccess () {
 	fi
 	echo "$MESSAGE"
 	# Ping Healthchecks.io
-	if [ ! "$HC_URL" == "" ]; then
+	if [ -n "$HC_URL" ]; then
 		echo -n "Connecting to healthchecks.io: "
 		curl -fsS --retry 3 --data-raw "$SCRIPTNAME $VERSION: $MESSAGE" "$HC_URL"
 		echo ""
@@ -184,7 +184,7 @@ fnSendError () {
 	fi
 	echoerr "$MESSAGE"
 	# Ping Healthchecks.io
-	if [ ! "$HC_URL" == "" ]; then
+	if [ -n "$HC_URL" ]; then
 		echo -n "Connecting to healthchecks.io: "
 		curl -fsS --retry 3 --data-raw "$SCRIPTNAME $VERSION: $MESSAGE" "$HC_URL/fail"
 		echo ""

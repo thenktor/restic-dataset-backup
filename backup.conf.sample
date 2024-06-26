@@ -26,8 +26,8 @@ RESTIC_PASSWORD=""
 # HEALTHCHECKS.IO
 #
 
-# Healthchecks.io ping url
-HC_URL="https://hc-ping.com/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+# Healthchecks.io ping url, e.g. "https://hc-ping.com/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+HC_URL=""
 
 #
 # KEEP
@@ -56,7 +56,7 @@ AWS_SECRET_ACCESS_KEY="none"
 # * Use rclone from $PATH: "rclone"
 # * Specify a local path to rclone: "/opt/local/bin/rclone"
 # * Execute rclone on the remote server via ssh:
-#   * For a remote server "ssh xyz@example.com rclone serve restic --stdio"
+#   * For a remote server "ssh xyz@example.com rclone"
 #   * For a Hetzner Storage Box use "ssh -p 23 xyz@xyz.your-storagebox.de rclone"
 RCLONE_PROGRAM="rclone"
 
