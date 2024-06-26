@@ -295,4 +295,4 @@ iRUNTIMEM=(${iRUNTIME}%3600)/60
 iRUNTIMES=${iRUNTIME}%60
 
 # send success mesage
-fnSendSuccess "OK! Laufzeit: $(printf "%02d:%02d:%02d" $iRUNTIMEH $iRUNTIMEM $iRUNTIMES)."
+fnSendSuccess "OK! Run time: $(printf "%02d:%02d:%02d" $iRUNTIMEH $iRUNTIMEM $iRUNTIMES)."
