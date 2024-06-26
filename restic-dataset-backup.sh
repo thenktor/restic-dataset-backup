@@ -38,7 +38,9 @@ fnUsage() {
 # command line arguments
 # https://wiki.bash-hackers.org/howto/getopts_tutorial
 #echo $*
-while getopts "hc:" OPT; do
+CONFIGFILE=""
+INIT=""
+while getopts "hic:" OPT; do
 	case $OPT in
 		c)
 			CONFIGFILE="$OPTARG"
@@ -46,6 +48,8 @@ while getopts "hc:" OPT; do
 		h)
 			fnUsage
 			;;
+		i)
+			INIT="YES"
 		*)
 			fnUsage
 			;;
@@ -110,6 +114,27 @@ else
 	echoerr "$CONFIGFILE not found!"
 	exit 1
 fi
+
+fnYesNo() {
+	REPLY="x"
+	while [ "${REPLY}" != "" ]; do
+		printf " (y/n) "
+		read -r  REPLY
+		REPLY=$(echo $REPLY | head -c1 | tr [:upper:] [:lower:])
+		if [ "$REPLY" = "y" ]; then
+			echo "YES"
+			REPLY=""
+			return 0
+		elif [ "$REPLY" = "n" ]; then
+			echo "NO"
+			REPLY=""
+			return 1
+		else
+			echo "Only y/n is allowed as answer"
+			REPLY="x"
+		fi
+	done
+}
 
 fnCleanup () {
 	if [ -e "$DATASET_MOUNTPOINT"/.zfs/snapshot/backup-source/ ]; then
@@ -201,19 +226,34 @@ else
 	exit 1
 fi
 
-# create snapshot of ZFS dataset
-if ! zfs snap "$DATASET"@backup-source; then fnSendError "Creating snapshot $DATASET@backup-source failed!"; fnCleanup; exit 1; fi
-
 # export some vars
 export RESTIC_REPOSITORY
 export RESTIC_PASSWORD
 export AWS_ACCESS_KEY_ID
 export AWS_SECRET_ACCESS_KEY
+
+# init restic repo?
+if [ "$INIT" = "YES" ]
+	printf "Do you really want to do 'restic init'?"
+	if fnYesNo; then
+		if ! restic "$RESTIC_ARGS" init; then
+			fnSendError "Restic init failed!"
+			exit 1
+		else
+			fnSendSuccess "Restic init done!"
+			exit 0
+		fi
+	fi
+fi
+
+# create snapshot of ZFS dataset
+if ! zfs snap "$DATASET"@backup-source; then fnSendError "Creating snapshot $DATASET@backup-source failed!"; fnCleanup; exit 1; fi
+
 # Mount point of ZFS dataset
 DATASET_MOUNTPOINT=$(zfs get -H -o value mountpoint "$DATASET")
 
 # restic backup
-if ! nice -n19 restic "$RESTIC_ARGS" --verbose backup --tag "dataset:$DATASET" --tag "mountpoint:$DATASET_MOUNTPOINT" "${DATASET_MOUNTPOINT}/.zfs/snapshot/backup-source/"; then 
+if ! nice -n19 restic "$RESTIC_ARGS" --verbose backup --tag "dataset:$DATASET" --tag "mountpoint:$DATASET_MOUNTPOINT" "${DATASET_MOUNTPOINT}/.zfs/snapshot/backup-source/"; then
 	fnSendError "Restic backup failed!"
 	fnCleanup
 	exit 1
