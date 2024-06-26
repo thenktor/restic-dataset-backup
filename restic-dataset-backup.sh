@@ -13,7 +13,7 @@
 ###############################################################################
 
 # Version
-VERSION="v0.6"
+VERSION="v0.7"
 # Path
 PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 export PATH
@@ -36,6 +36,9 @@ while getopts "hc:" OPT; do
 			CONFIGFILE="$OPTARG"
 			;;
 		h)
+			fnUsage
+			;;
+		*)
 			fnUsage
 			;;
 	esac
@@ -66,6 +69,7 @@ iSTARTTIME=$(date +%s)
 DATASET="none"
 RESTIC_REPOSITORY="none"
 RESTIC_PASSWORD="none"
+RESTIC_ARGS=""
 AWS_ACCESS_KEY_ID="none"
 AWS_SECRET_ACCESS_KEY="none"
 HC_URL="none"
@@ -143,6 +147,23 @@ fnSendStart "Starting backup: $HOSTNAME"
 # root check
 if [ $(id -u) -ne 0 ]; then fnSendError "Please run as root!"; exit 1; fi
 
+# Repository type, get the part before first ":"
+RESTIC_REPOSITORY_TYPE="${RESTIC_REPOSITORY%%:*}"
+
+# check some vars
+if [ "$RESTIC_REPOSITORY_TYPE" == "s3" ]; then
+	if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
+		fnSendError "S3 variables not set!"
+		exit 1
+	fi
+elif [ "$RESTIC_REPOSITORY_TYPE" == "rclone" ]; then
+	if [ -z "$RCLONE_PROGRAM" ]; then
+		fnSendError "rclone program not set!"
+		exit 1
+	fi
+	RESTIC_ARGS="-o rclone.program=$RCLONE_PROGRAM"
+fi
+
 # check if backup is already running
 LOCKSUBDIR=`echo "$RESTIC_REPOSITORY" | md5sum | head -c32`
 LOCKPARENTDIR="/tmp/restic-dataset-backup"
@@ -170,7 +191,7 @@ export AWS_SECRET_ACCESS_KEY
 DATASET_MOUNTPOINT=`zfs get -H -o value mountpoint "$DATASET"`
 
 # restic backup
-nice -n19 ionice -c3 restic --verbose backup --tag "dataset:$DATASET" --tag "mountpoint:$DATASET_MOUNTPOINT" "$DATASET_MOUNTPOINT"/.zfs/snapshot/backup-source/
+nice -n19 ionice -c3 restic "$RESTIC_ARGS" --verbose backup --tag "dataset:$DATASET" --tag "mountpoint:$DATASET_MOUNTPOINT" "${DATASET_MOUNTPOINT}/.zfs/snapshot/backup-source/"
 if [ ! $? -eq 0 ]; then fnSendError "Restic backup failed!"; fnCleanup; exit 1; fi
 
 # delete snapshot of ZFS dataset
@@ -179,7 +200,7 @@ if [ ! $? -eq 0 ]; then sync; sleep 2; fnSendError "Destroying snapshot $DATASET
 
 # restic forget
 if [ ! -z "$KEEP_WITHIN" -a ! -z "$KEEP_MONTHLY" ]; then
-	nice -n19 ionice -c3 restic forget --keep-within "$KEEP_WITHIN" --keep-monthly "$KEEP_MONTHLY" --prune
+	nice -n19 ionice -c3 restic "$RESTIC_ARGS" forget --keep-within "$KEEP_WITHIN" --keep-monthly "$KEEP_MONTHLY" --prune
 	if [ ! $? -eq 0 ]; then sync; sleep 2; fnSendError "Restic forget failed!"; fnCleanup; exit 1; fi
 fi
 
