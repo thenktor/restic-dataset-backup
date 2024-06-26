@@ -234,7 +234,7 @@ export AWS_ACCESS_KEY_ID
 export AWS_SECRET_ACCESS_KEY
 
 # init restic repo?
-if [ "$INIT" = "YES" ]
+if [ "$INIT" = "YES" ]; then
 	printf "Do you really want to do 'restic init'?"
 	if fnYesNo; then
 		if ! restic "$RESTIC_ARGS" init; then
