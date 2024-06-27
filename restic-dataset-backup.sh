@@ -13,7 +13,7 @@
 ###############################################################################
 
 # Version
-VERSION="v0.10"
+VERSION="v0.11"
 # Path
 PATH="/usr/sbin:/usr/bin:/sbin:/bin"
 # /usr/local/bin
@@ -32,6 +32,8 @@ echoerr() { printf "%s\n" "$*" >&2; }
 fnUsage() {
 	echoerr "USAGE: $0 [-c <config-file>]" 1>&2;
 	echoerr "  -c <config-file>: path to config file" 1>&2;
+	echoerr "  -i                run 'restic init' on repo" 1>&2;
+	echoerr "  -u                run 'restic unlock' on repo" 1>&2;
 	exit 1;
 }
 
@@ -40,7 +42,8 @@ fnUsage() {
 #echo $*
 CONFIGFILE=""
 INIT=""
-while getopts "hic:" OPT; do
+UNLOCK=""
+while getopts "hiuc:" OPT; do
 	case $OPT in
 		c)
 			CONFIGFILE="$OPTARG"
@@ -50,6 +53,9 @@ while getopts "hic:" OPT; do
 			;;
 		i)
 			INIT="YES"
+			;;
+		u)
+			UNLOCK="YES"
 			;;
 		*)
 			fnUsage
@@ -235,7 +241,7 @@ export AWS_SECRET_ACCESS_KEY
 
 # init restic repo?
 if [ "$INIT" = "YES" ]; then
-	printf "Do you really want to do 'restic init'?"
+	printf "Do you really want to run 'restic init'?"
 	if fnYesNo; then
 		if ! restic "$RESTIC_ARGS" init; then
 			fnSendError "Restic init failed!"
@@ -246,6 +252,30 @@ if [ "$INIT" = "YES" ]; then
 			fnCleanup
 			exit 0
 		fi
+	else
+		fnSendSuccess "Restic init aborted!"
+		fnCleanup
+		exit 0
+	fi
+fi
+
+# unlock restic repo?
+if [ "$UNLOCK" = "YES" ]; then
+	printf "Do you really want to run 'restic unlock' to remove stale locks?"
+	if fnYesNo; then
+		if ! restic "$RESTIC_ARGS" unlock; then
+			fnSendError "Restic unlock failed!"
+			fnCleanup
+			exit 1
+		else
+			fnSendSuccess "Restic unlock done!"
+			fnCleanup
+			exit 0
+		fi
+	else
+		fnSendSuccess "Restic unlock aborted!"
+		fnCleanup
+		exit 0
 	fi
 fi
 
