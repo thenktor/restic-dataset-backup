@@ -3,7 +3,7 @@
 # Uses healthchecks.io for signaling
 
 # Version
-VERSION="v0.1"
+VERSION="v0.2"
 # Path
 PATH="/usr/sbin:/usr/bin:/sbin:/bin"
 # /usr/local/bin
@@ -134,8 +134,11 @@ ERROR_CONFS=""
 for CONF_FILE in $CONF_FILES; do
 	if ! "$RESTIC_DATASET_BACKUP" -c "$CONF_FILE"; then
 		iERROR_COUNT+=1
-		ERROR_CONFS="$CONF_FILE $ERROR_CONFS"
+		ERROR_CONFS="$CONF_FILE\n$ERROR_CONFS"
 	fi
+	echo ""
+	echo "---"
+	echo ""
 done
 
 # runtime measurement
@@ -146,7 +149,7 @@ iRUNTIMEM=(${iRUNTIME}%3600)/60
 iRUNTIMES=${iRUNTIME}%60
 
 if [ -n "$ERROR_CONFS" ]; then
-	fnSendError "Errors: $iERROR_COUNT; configs: $ERROR_CONFS; Run time: $(printf "%02d:%02d:%02d" $iRUNTIMEH $iRUNTIMEM $iRUNTIMES)."
+	fnSendError "Errors: $iERROR_COUNT;\nConfigs: $ERROR_CONFS;\nRun time: $(printf "%02d:%02d:%02d" $iRUNTIMEH $iRUNTIMEM $iRUNTIMES)."
 else
 	fnSendSuccess "OK! Run time: $(printf "%02d:%02d:%02d" $iRUNTIMEH $iRUNTIMEM $iRUNTIMES)."
 fi

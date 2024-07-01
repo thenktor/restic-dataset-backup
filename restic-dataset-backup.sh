@@ -13,7 +13,7 @@
 ###############################################################################
 
 # Version
-VERSION="v0.11"
+VERSION="v0.12"
 # Path
 PATH="/usr/sbin:/usr/bin:/sbin:/bin"
 # /usr/local/bin
@@ -197,7 +197,7 @@ fnSendError () {
 	fi
 }
 
-fnSendStart "Starting backup: $HOSTNAME"
+fnSendStart "Starting backup: ${HOSTNAME}, ${DATASET}"
 
 # root check
 if [ "$(id -u)" -ne 0 ]; then fnSendError "Please run as root!"; exit 1; fi
