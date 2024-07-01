@@ -134,7 +134,7 @@ ERROR_CONFS=""
 for CONF_FILE in $CONF_FILES; do
 	if ! "$RESTIC_DATASET_BACKUP" -c "$CONF_FILE"; then
 		iERROR_COUNT+=1
-		ERROR_CONFS="$CONF_FILE\n$ERROR_CONFS"
+		ERROR_CONFS="${CONF_FILE}, $ERROR_CONFS"
 	fi
 	echo ""
 	echo "---"
@@ -149,7 +149,7 @@ iRUNTIMEM=(${iRUNTIME}%3600)/60
 iRUNTIMES=${iRUNTIME}%60
 
 if [ -n "$ERROR_CONFS" ]; then
-	fnSendError "Errors: $iERROR_COUNT;\nConfigs: $ERROR_CONFS;\nRun time: $(printf "%02d:%02d:%02d" $iRUNTIMEH $iRUNTIMEM $iRUNTIMES)."
+	fnSendError "Errors: $iERROR_COUNT; Configs: $ERROR_CONFS; Run time: $(printf "%02d:%02d:%02d" $iRUNTIMEH $iRUNTIMEM $iRUNTIMES)."
 else
 	fnSendSuccess "OK! Run time: $(printf "%02d:%02d:%02d" $iRUNTIMEH $iRUNTIMEM $iRUNTIMES)."
 fi
