@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/bin/sh
+# shellcheck disable=SC3043
+
 # Creates backups of ZFS datasets with restic
 # Uses healthchecks.io for signaling
 
@@ -56,16 +58,16 @@ SCRIPTNAME=$(basename "$SCRIPT")
 HOSTNAME=$(hostname)
 
 # runtime measurement
-declare -i iSTARTTIME=0
-declare -i iENDTIME=0
-declare -i iRUNTIME=0
-declare -i iRUNTIMEH=0
-declare -i iRUNTIMEM=0
-declare -i iRUNTIMES=0
+iSTARTTIME=0
+iENDTIME=0
+iRUNTIME=0
+iRUNTIMEH=0
+iRUNTIMEM=0
+iRUNTIMES=0
 iSTARTTIME=$(date +%s)
 
 if [ -f "$CONFIGFILE" ]; then
-	source "$CONFIGFILE"
+	. "$CONFIGFILE"
 else
 	echoerr "$CONFIGFILE not found!"
 	exit 1
@@ -80,7 +82,7 @@ fnSendStart () {
 	echo "$MESSAGE"
 	# Ping Healthchecks.io
 	if [ -n "$HC_URL" ]; then
-		echo -n "Connecting to healthchecks.io: "
+		printf "Connecting to healthchecks.io: "
 		curl -fsS --retry 3 --data-raw "$SCRIPTNAME $VERSION: $MESSAGE" "$HC_URL/start"
 		echo ""
 	fi
@@ -95,7 +97,7 @@ fnSendSuccess () {
 	echo "$MESSAGE"
 	# Ping Healthchecks.io
 	if [ -n "$HC_URL" ]; then
-		echo -n "Connecting to healthchecks.io: "
+		printf "Connecting to healthchecks.io: "
 		curl -fsS --retry 3 --data-raw "$SCRIPTNAME $VERSION: $MESSAGE" "$HC_URL"
 		echo ""
 	fi
@@ -110,7 +112,7 @@ fnSendError () {
 	echoerr "$MESSAGE"
 	# Ping Healthchecks.io
 	if [ -n "$HC_URL" ]; then
-		echo -n "Connecting to healthchecks.io: "
+		printf "Connecting to healthchecks.io: "
 		curl -fsS --retry 3 --data-raw "$SCRIPTNAME $VERSION: $MESSAGE" "$HC_URL/fail"
 		echo ""
 	fi
@@ -127,13 +129,13 @@ if [ -z "$CONF_FILES" ]; then
 	exit 1
 fi
 
-declare -i iERROR_COUNT=0
+iERROR_COUNT=0
 ERROR_CONFS=""
 
 # Loop through each .conf file
 for CONF_FILE in $CONF_FILES; do
 	if ! "$RESTIC_DATASET_BACKUP" -c "$CONF_FILE"; then
-		iERROR_COUNT+=1
+		iERROR_COUNT=$((iERROR_COUNT+1))
 		ERROR_CONFS="${CONF_FILE}, $ERROR_CONFS"
 	fi
 	echo ""
@@ -143,13 +145,13 @@ done
 
 # runtime measurement
 iENDTIME=$(date +%s)
-iRUNTIME=$iENDTIME-$iSTARTTIME
-iRUNTIMEH=${iRUNTIME}/3600
-iRUNTIMEM=(${iRUNTIME}%3600)/60
-iRUNTIMES=${iRUNTIME}%60
+iRUNTIME=$((iENDTIME - iSTARTTIME))
+iRUNTIMEH=$((iRUNTIME / 3600))
+iRUNTIMEM=$(( (iRUNTIME % 3600) / 60 ))
+iRUNTIMES=$((iRUNTIME % 60))
 
 if [ -n "$ERROR_CONFS" ]; then
-	fnSendError "Errors: $iERROR_COUNT; Configs: $ERROR_CONFS; Run time: $(printf "%02d:%02d:%02d" $iRUNTIMEH $iRUNTIMEM $iRUNTIMES)."
+	fnSendError "Errors: $iERROR_COUNT; Configs: $ERROR_CONFS; Run time: $(printf "%02d:%02d:%02d" "$iRUNTIMEH" "$iRUNTIMEM" "$iRUNTIMES")."
 else
-	fnSendSuccess "OK! Run time: $(printf "%02d:%02d:%02d" $iRUNTIMEH $iRUNTIMEM $iRUNTIMES)."
+	fnSendSuccess "OK! Run time: $(printf "%02d:%02d:%02d" "$iRUNTIMEH" "$iRUNTIMEM" "$iRUNTIMES")."
 fi

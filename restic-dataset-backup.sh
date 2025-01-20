@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/bin/sh
+# shellcheck disable=SC3043
+
 # Creates backups of ZFS datasets with restic
 # Uses healthchecks.io for signaling
 
@@ -76,12 +78,12 @@ SCRIPTNAME=$(basename "$SCRIPT")
 HOSTNAME=$(hostname)
 
 # runtime measurement
-declare -i iSTARTTIME=0
-declare -i iENDTIME=0
-declare -i iRUNTIME=0
-declare -i iRUNTIMEH=0
-declare -i iRUNTIMEM=0
-declare -i iRUNTIMES=0
+iSTARTTIME=0
+iENDTIME=0
+iRUNTIME=0
+iRUNTIMEH=0
+iRUNTIMEM=0
+iRUNTIMES=0
 iSTARTTIME=$(date +%s)
 
 # load config file
@@ -112,7 +114,7 @@ if [ -f "$CONFIGFILE" ]; then
 			echoerr "WARNING: $CONFIGFILE should have 600 permissions because it contains sensible data!"
 		fi
 	fi
-	source "$CONFIGFILE"
+	. "$CONFIGFILE"
 	if [ -n "$PATH_APPEND" ]; then
 		PATH="$PATH:$PATH_APPEND"
 		export PATH
@@ -127,7 +129,7 @@ fnYesNo() {
 	while [ "${REPLY}" != "" ]; do
 		printf " (y/n) "
 		read -r  REPLY
-		REPLY=$(echo $REPLY | head -c1 | tr [:upper:] [:lower:])
+		REPLY=$(echo "$REPLY" | head -c1 | tr '[:upper:]' '[:lower:]')
 		if [ "$REPLY" = "y" ]; then
 			echo "YES"
 			REPLY=""
@@ -161,7 +163,7 @@ fnSendStart () {
 	echo "$MESSAGE"
 	# Ping Healthchecks.io
 	if [ -n "$HC_URL" ]; then
-		echo -n "Connecting to healthchecks.io: "
+		printf "Connecting to healthchecks.io: "
 		curl -fsS --retry 3 --data-raw "$SCRIPTNAME $VERSION: $MESSAGE" "$HC_URL/start"
 		echo ""
 	fi
@@ -176,7 +178,7 @@ fnSendSuccess () {
 	echo "$MESSAGE"
 	# Ping Healthchecks.io
 	if [ -n "$HC_URL" ]; then
-		echo -n "Connecting to healthchecks.io: "
+		printf "Connecting to healthchecks.io: "
 		curl -fsS --retry 3 --data-raw "$SCRIPTNAME $VERSION: $MESSAGE" "$HC_URL"
 		echo ""
 	fi
@@ -191,7 +193,7 @@ fnSendError () {
 	echoerr "$MESSAGE"
 	# Ping Healthchecks.io
 	if [ -n "$HC_URL" ]; then
-		echo -n "Connecting to healthchecks.io: "
+		printf "Connecting to healthchecks.io: "
 		curl -fsS --retry 3 --data-raw "$SCRIPTNAME $VERSION: $MESSAGE" "$HC_URL/fail"
 		echo ""
 	fi
@@ -206,12 +208,12 @@ if [ "$(id -u)" -ne 0 ]; then fnSendError "Please run as root!"; exit 1; fi
 RESTIC_REPOSITORY_TYPE="${RESTIC_REPOSITORY%%:*}"
 
 # check some vars
-if [ "$RESTIC_REPOSITORY_TYPE" == "s3" ]; then
+if [ "$RESTIC_REPOSITORY_TYPE" = "s3" ]; then
 	if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
 		fnSendError "S3 variables not set!"
 		exit 1
 	fi
-elif [ "$RESTIC_REPOSITORY_TYPE" == "rclone" ]; then
+elif [ "$RESTIC_REPOSITORY_TYPE" = "rclone" ]; then
 	if [ -z "$RCLONE_PROGRAM" ]; then
 		fnSendError "rclone program not set!"
 		exit 1
@@ -319,10 +321,10 @@ rm -rf "$LOCKDIR"
 
 # runtime measurement
 iENDTIME=$(date +%s)
-iRUNTIME=$iENDTIME-$iSTARTTIME
-iRUNTIMEH=${iRUNTIME}/3600
-iRUNTIMEM=(${iRUNTIME}%3600)/60
-iRUNTIMES=${iRUNTIME}%60
+iRUNTIME=$((iENDTIME - iSTARTTIME))
+iRUNTIMEH=$((iRUNTIME / 3600))
+iRUNTIMEM=$(( (iRUNTIME % 3600) / 60 ))
+iRUNTIMES=$((iRUNTIME % 60))
 
 # send success mesage
-fnSendSuccess "OK! Run time: $(printf "%02d:%02d:%02d" $iRUNTIMEH $iRUNTIMEM $iRUNTIMES)."
+fnSendSuccess "OK! Run time: $(printf "%02d:%02d:%02d" "$iRUNTIMEH" "$iRUNTIMEM" "$iRUNTIMES")."
